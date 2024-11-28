@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Difference Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pattaya&display=swap');
+
+        body {
+            font-family: "Pattaya", sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            margin: 0;
+            cursor: none;
+        }
+
+        h1 {
+            font-size: 8rem;
+            text-align: left;
+            margin: 0;
+            color: #FF00FA;
+            padding-left: 50px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            text-align: left;
+            margin: 0;
+            padding-left: 50px;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            text-align: left;
+            margin: 0;
+            padding-left: 50px; 
+            color: white; 
+            -webkit-text-stroke: 0.1px black; 
+            padding-top: 6px;
+        }
+
+        #scoreDisplay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #FF00FA;
+        }
+
+        .text-container {
+            font-size: 8em;
+            font-family: 'Pattaya', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #nextButton {
+            padding: 10px 30px;
+            font-size: 1.2em;
+            font-family: "Pattaya", sans-serif;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10%;
+        }
+
+        #nextButton:hover {
+            background-color: #cccccc;
+        }
+
+        #result {
+            font-size: 2em;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>Designer's Eye</h1>
+    <h2>Find the letter with a different color. Test your eye.</h2>
+    <h3>단어 안에서 다른 색을 가진 글자를 찾아보세요! 내 눈의 정확도를 테스트해봐요.</h3>
+    <div id="scoreDisplay">Score: 0</div>
+    <div id="textContainer" class="text-container" style="padding-top: 150px;"></div>
+    <p id="result"></p>
+    <button id="nextButton" onclick="nextQuestion()" style="display: none;">Next</button>
+    <div class="cursor" id="cursor"></div>
+
+    <script>
+        const cursor = document.getElementById("cursor");
+        document.addEventListener("mousemove", (e) => {
+            cursor.style.left = `${e.pageX}px`;
+            cursor.style.top = `${e.pageY}px`;
+        });
+
+        let currentScore = 0;
+        let currentQuestion = 0;
+        const totalQuestions = 4;
+        let targetIndex = 0;
+
+        const words = [
+            "Beautiful",
+            "Incredible",
+            "Amazing",
+            "Adorable"
+        ];
+
+        function createColorDifference() {
+            if (currentQuestion >= totalQuestions) {
+                document.getElementById('result').innerText = `Game Over! Final Score: ${currentScore}`;
+                document.getElementById('nextButton').style.display = "none";
+                return;
+            }
+
+            const word = words[currentQuestion];
+            const randomIndex = Math.floor(Math.random() * word.length);
+            const wordArray = word.split('');
+            targetIndex = randomIndex;
+
+            const baseColor = getRandomColor();
+            const targetColor = adjustColor(baseColor);
+
+            const container = document.getElementById('textContainer');
+            container.innerHTML = ''; // 기존 텍스트 초기화
+
+            wordArray.forEach((letter, index) => {
+                const span = document.createElement('span');
+                span.textContent = letter;
+                span.style.color = index === targetIndex ? targetColor : baseColor;
+                span.style.cursor = "pointer";
+                span.addEventListener('click', () => checkColor(index));
+                container.appendChild(span);
+            });
+
+            document.getElementById('nextButton').style.display = "none";
+            document.getElementById('result').innerText = "";
+        }
+
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 200) + 50; // 50~250 범위
+            const g = Math.floor(Math.random() * 200) + 50;
+            const b = Math.floor(Math.random() * 200) + 50;
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function adjustColor(baseColor) {
+            const rgb = baseColor.match(/\d+/g).map(Number);
+            const channelIndex = Math.floor(Math.random() * 3); // 랜덤으로 R, G, B 중 하나 선택
+            const variation = Math.floor(Math.random() * 60) - 30; // -30~30 차이
+            rgb[channelIndex] = Math.min(255, Math.max(0, rgb[channelIndex] + variation));
+            return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+        }
+
+        function checkColor(index) {
+            const resultText = document.getElementById('result');
+            if (index === targetIndex) {
+                resultText.innerText = "You got it!";
+                resultText.style.color = "#00FF04";
+                currentScore += 10;
+            } else {
+                resultText.innerText = "Wrong answer!";
+                resultText.style.color = "red";
+                currentScore -= 5;
+            }
+            document.getElementById('scoreDisplay').innerText = `Score: ${currentScore}`;
+            document.getElementById('nextButton').style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            createColorDifference();
+        }
+
+        createColorDifference();
+    </script>
+</body>
+</html>
